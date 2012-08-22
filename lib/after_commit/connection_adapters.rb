@@ -89,7 +89,6 @@ module AfterCommit
             AfterCommit.cleanup(self)
             decrement_transaction_pointer
           end
-          decrement_transaction_pointer
         end
         alias_method_chain :rollback_db_transaction, :callback
         

@@ -104,6 +104,27 @@ class TrackCountRecord < ActiveRecord::Base
 end
 
 class AfterCommitTest < Test::Unit::TestCase
+  
+  def teardown
+    # always ensure that we've returned the transaction_pointer to zero
+    assert_equal(0, ActiveRecord::Base.connection.send(:transaction_pointer))
+    assert_equal(0, Thread.current[:after_commit_pointer])
+    [
+      :committed_records,
+      :committed_records_on_create,
+      :committed_records_on_update,
+      :committed_records_on_save,
+      :committed_records_on_destroy
+    ].each do |collection|
+      # make sure we've cleaned up transaction-specific data properly
+      assert_equal({}, Thread.current[collection], "Expected #{collection} to be blank: #{Thread.current.inspect}")
+    end
+  end
+  
+  def setup
+    ActiveRecord::Base.establish_connection({"adapter" => "sqlite3", "database" => 'test.sqlite3'})
+  end
+  
   def test_before_commit_on_create_is_called
     assert_equal true, MockRecord.create!.before_commit_on_create_called
   end
